@@ -68,10 +68,27 @@ export function humanFormatter(
   };
 }
 
+function jsonReplacer(_key: string, value: unknown): unknown {
+  if (value instanceof Error) {
+    const serialized: Record<string, unknown> = {
+      name: value.name,
+      message: value.message,
+    };
+    if (value.stack) {
+      serialized.stack = value.stack;
+    }
+    if (value.cause !== undefined) {
+      serialized.cause = value.cause;
+    }
+    return serialized;
+  }
+  return value;
+}
+
 export function jsonFormatter(): LogFormatter {
   return {
     format(entry: LogEntry): string {
-      return JSON.stringify(entry);
+      return JSON.stringify(entry, jsonReplacer);
     },
   };
 }

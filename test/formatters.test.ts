@@ -52,6 +52,31 @@ describe("jsonFormatter", () => {
     expect(parsed.level).toBe("info");
     expect(parsed.context).toEqual({ a: 1 });
   });
+
+  it("serializes Error arguments with name, message and stack", () => {
+    const error = new Error("boom");
+    const parsed = JSON.parse(
+      jsonFormatter().format(entry({ args: [error] })),
+    ) as { args: [{ name: string; message: string; stack: string }] };
+    expect(parsed.args[0].name).toBe("Error");
+    expect(parsed.args[0].message).toBe("boom");
+    expect(parsed.args[0].stack).toContain("boom");
+  });
+
+  it("serializes Errors nested in context", () => {
+    const parsed = JSON.parse(
+      jsonFormatter().format(entry({ context: { failure: new Error("ctx") } })),
+    ) as { context: { failure: { message: string } } };
+    expect(parsed.context.failure.message).toBe("ctx");
+  });
+
+  it("serializes the cause of an Error", () => {
+    const error = new Error("outer", { cause: new Error("inner") });
+    const parsed = JSON.parse(jsonFormatter().format(entry({ args: [error] }))) as {
+      args: [{ cause: { message: string } }];
+    };
+    expect(parsed.args[0].cause.message).toBe("inner");
+  });
 });
 
 describe("serialize", () => {
