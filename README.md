@@ -71,6 +71,44 @@ const logger = new Logger({
 });
 ```
 
+### File transport with rotation
+
+The built-in `fileTransporter()` writes to disk and supports rotation by size
+and/or calendar period, keeping a bounded number of files.
+
+```ts
+import { Logger, fileTransporter } from "ts-logger";
+
+const logger = new Logger({
+  transports: [
+    fileTransporter({
+      path: "./logs/app.log",
+      rotation: {
+        maxSize: 10 * 1024 * 1024, // rotate at 10 MB
+        maxFiles: 5, // keep the 5 most recent rotated files
+        date: "daily", // also rotate when the calendar day changes
+      },
+    }),
+  ],
+});
+```
+
+Rotated files are named `app.YYYYMMDD-HHmmss.log`. `maxSize` and `date` are
+independent: either one can be omitted. Writes are serialized through an
+internal queue; failures are reported via the `onError` callback (defaults to
+`console.error`). Call `logger.close()` to flush pending writes.
+
+### Examples
+
+Run the demos from the repository root after building:
+
+```bash
+npm run build
+node examples/basic.mjs          # levels, child loggers, context
+node examples/file-rotation.mjs  # file transport with size rotation
+node examples/json.mjs           # structured JSON output
+```
+
 ### Levels
 
 Ordered by severity: `trace` < `debug` < `info` < `warn` < `error` < `fatal`.

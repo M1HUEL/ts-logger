@@ -109,10 +109,12 @@ export class Logger {
     this.state.transports.push(transport);
   }
 
-  close(): void {
-    for (const transport of this.state.transports) {
-      transport.close?.();
-    }
+  async close(): Promise<void> {
+    await Promise.all(
+      this.state.transports.map(async (transport) => {
+        await transport.close?.();
+      }),
+    );
     this.state.transports = [];
   }
 }

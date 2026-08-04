@@ -21,7 +21,7 @@ export interface LogEntry {
 export interface Transport {
   readonly name?: string;
   log(entry: LogEntry): void;
-  close?(): void;
+  close?(): void | Promise<void>;
 }
 
 export interface LoggerOptions {

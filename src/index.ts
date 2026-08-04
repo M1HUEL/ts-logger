@@ -22,3 +22,5 @@ export type {
 } from "./formatters";
 export { consoleTransport } from "./transports";
 export type { ConsoleTransportOptions } from "./transports";
+export { fileTransporter, FileTransporter } from "./file-transporter";
+export type { FileRotationOptions, FileTransporterOptions } from "./file-transporter";
