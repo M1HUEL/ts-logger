@@ -14,7 +14,7 @@ Transport-agnostic logging library for Node.js, written in TypeScript.
 npm install ts-logger
 ```
 
-Requires Node.js >= 18.
+Requires Node.js >= 20.
 
 ## Usage
 
