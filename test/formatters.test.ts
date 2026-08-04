@@ -77,6 +77,25 @@ describe("jsonFormatter", () => {
     };
     expect(parsed.args[0].cause.message).toBe("inner");
   });
+
+  it("does not throw on BigInt arguments", () => {
+    const line = jsonFormatter().format(entry({ args: [123n] }));
+    const parsed = JSON.parse(line) as { args: [string] };
+    expect(parsed.args[0]).toBe("123");
+  });
+
+  it("does not throw on circular arguments", () => {
+    const cyclic: Record<string, unknown> = {};
+    cyclic.self = cyclic;
+    const line = jsonFormatter().format(entry({ args: [cyclic] }));
+    expect(line).toContain("[Circular]");
+  });
+
+  it("does not throw on symbol and function arguments", () => {
+    const line = jsonFormatter().format(entry({ args: [Symbol("x"), () => 1] }));
+    const parsed = JSON.parse(line) as { args: unknown[] };
+    expect(parsed.args).toEqual([null, null]);
+  });
 });
 
 describe("serialize", () => {

@@ -68,27 +68,53 @@ export function humanFormatter(
   };
 }
 
-function jsonReplacer(_key: string, value: unknown): unknown {
-  if (value instanceof Error) {
-    const serialized: Record<string, unknown> = {
-      name: value.name,
-      message: value.message,
-    };
-    if (value.stack) {
-      serialized.stack = value.stack;
-    }
-    if (value.cause !== undefined) {
-      serialized.cause = value.cause;
-    }
-    return serialized;
+function errorToJson(error: Error): Record<string, unknown> {
+  const serialized: Record<string, unknown> = {
+    name: error.name,
+    message: error.message,
+  };
+  if (error.stack) {
+    serialized.stack = error.stack;
   }
-  return value;
+  if (error.cause !== undefined) {
+    serialized.cause = error.cause;
+  }
+  return serialized;
+}
+
+function safeJsonStringify(value: unknown): string {
+  const seen = new Set<object>();
+
+  function replacer(_key: string, current: unknown): unknown {
+    if (current instanceof Error) {
+      return errorToJson(current);
+    }
+    if (typeof current === "bigint") {
+      return current.toString();
+    }
+    if (typeof current === "function" || typeof current === "symbol") {
+      return undefined;
+    }
+    if (current !== null && typeof current === "object") {
+      if (seen.has(current)) {
+        return "[Circular]";
+      }
+      seen.add(current);
+    }
+    return current;
+  }
+
+  try {
+    return JSON.stringify(value, replacer);
+  } catch {
+    return JSON.stringify({ error: "Unserializable log entry" });
+  }
 }
 
 export function jsonFormatter(): LogFormatter {
   return {
     format(entry: LogEntry): string {
-      return JSON.stringify(entry, jsonReplacer);
+      return safeJsonStringify(entry);
     },
   };
 }
