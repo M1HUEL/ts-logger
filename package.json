@@ -11,6 +11,14 @@
     "agnostic"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/M1HUEL/ts-logger.git"
+  },
+  "homepage": "https://github.com/M1HUEL/ts-logger#readme",
+  "bugs": {
+    "url": "https://github.com/M1HUEL/ts-logger/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
