@@ -174,6 +174,49 @@ describe("Logger", () => {
       requestId: "r-9",
     });
   });
+
+  it("does not crash when a transport throws and still logs to the rest", () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const entries: LogEntry[] = [];
+    const throwing: Transport = {
+      name: "throwing",
+      log: () => {
+        throw new Error("transport exploded");
+      },
+    };
+    const logger = new Logger({
+      transports: [throwing, recordingTransport(entries)],
+    });
+    try {
+      expect(() => logger.info("survives")).not.toThrow();
+      expect(entries).toHaveLength(1);
+      expect(errorSpy).toHaveBeenCalledOnce();
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  it("does not crash when close throws on one transport", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const closeSpy = vi.fn();
+    const throwing: Transport = {
+      name: "throwing-close",
+      log: () => undefined,
+      close: () => {
+        throw new Error("close exploded");
+      },
+    };
+    const logger = new Logger({
+      transports: [throwing, { name: "c", log: () => undefined, close: closeSpy }],
+    });
+    try {
+      await expect(logger.close()).resolves.toBeUndefined();
+      expect(closeSpy).toHaveBeenCalledOnce();
+      expect(errorSpy).toHaveBeenCalledOnce();
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
 });
 
 describe("consoleTransport", () => {

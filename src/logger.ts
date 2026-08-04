@@ -68,7 +68,11 @@ export class Logger {
       this.createTimestamp,
     );
     for (const transport of this.state.transports) {
-      transport.log(entry);
+      try {
+        transport.log(entry);
+      } catch (error) {
+        console.error("ts-logger transport error:", error);
+      }
     }
   }
 
@@ -112,7 +116,11 @@ export class Logger {
   async close(): Promise<void> {
     await Promise.all(
       this.state.transports.map(async (transport) => {
-        await transport.close?.();
+        try {
+          await transport.close?.();
+        } catch (error) {
+          console.error("ts-logger transport error:", error);
+        }
       }),
     );
     this.state.transports = [];
