@@ -152,6 +152,28 @@ describe("Logger", () => {
     const logger = new Logger({ transports: [] });
     expect(() => logger.close()).not.toThrow();
   });
+
+  it("does not throw when logging with no transports", () => {
+    const logger = new Logger({ transports: [] });
+    expect(() => logger.info("dropped")).not.toThrow();
+  });
+
+  it("deeply merges context across nested children", () => {
+    const entries: LogEntry[] = [];
+    const logger = new Logger({
+      context: { app: "api", region: "eu" },
+      transports: [recordingTransport(entries)],
+    });
+    const child = logger.child({ service: "auth" });
+    const grandchild = child.child({ requestId: "r-9" });
+    grandchild.info("nested");
+    expect(entries[0]?.context).toEqual({
+      app: "api",
+      region: "eu",
+      service: "auth",
+      requestId: "r-9",
+    });
+  });
 });
 
 describe("consoleTransport", () => {
@@ -184,6 +206,47 @@ describe("consoleTransport", () => {
         context: {},
       });
       expect(spy).toHaveBeenCalledWith("ERR");
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("routes warn to console.warn", () => {
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    try {
+      const transport = consoleTransport({ formatter: { format: () => "W" } });
+      transport.log({
+        timestamp: "t",
+        level: "warn",
+        message: "m",
+        args: [],
+        context: {},
+      });
+      expect(spy).toHaveBeenCalledWith("W");
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("routes debug and trace to console.debug", () => {
+    const spy = vi.spyOn(console, "debug").mockImplementation(() => undefined);
+    try {
+      const transport = consoleTransport({ formatter: { format: () => "D" } });
+      transport.log({
+        timestamp: "t",
+        level: "debug",
+        message: "m",
+        args: [],
+        context: {},
+      });
+      transport.log({
+        timestamp: "t",
+        level: "trace",
+        message: "m",
+        args: [],
+        context: {},
+      });
+      expect(spy).toHaveBeenCalledTimes(2);
     } finally {
       spy.mockRestore();
     }

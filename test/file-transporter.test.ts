@@ -104,7 +104,25 @@ describe("fileTransporter", () => {
     await transport.close();
 
     const rotated = readdirSync(dir).filter((name) => name !== "app.log");
-    expect(rotated.length).toBeLessThanOrEqual(2);
+    expect(rotated).toHaveLength(2);
+  });
+
+  it("gives each rotated file a unique name within the same second", async () => {
+    const dir = tempDir();
+    const file = join(dir, "app.log");
+    const transport = fileTransporter({
+      path: file,
+      formatter: { format: () => "a" },
+      rotation: { maxSize: 1, maxFiles: 10 },
+    });
+    for (let i = 0; i < 6; i += 1) {
+      transport.log(makeEntry(String(i)));
+    }
+    await transport.close();
+
+    const rotated = readdirSync(dir).filter((name) => name !== "app.log");
+    expect(rotated).toHaveLength(5);
+    expect(new Set(rotated).size).toBe(5);
   });
 
   it("rotates on a new calendar day after restart", async () => {
@@ -141,6 +159,18 @@ describe("fileTransporter", () => {
     transport.log(makeEntry("boom"));
     await transport.close();
     expect(onError).toHaveBeenCalledOnce();
+  });
+
+  it("uses console.error for write errors by default", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const transport = fileTransporter({ path: tempDir() });
+      transport.log(makeEntry("boom"));
+      await transport.close();
+      expect(spy).toHaveBeenCalledOnce();
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it("exposes close that flushes pending writes", async () => {

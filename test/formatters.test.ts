@@ -97,4 +97,10 @@ describe("serialize", () => {
     expect(serialize(42)).toBe("42");
     expect(serialize(null)).toBe("null");
   });
+
+  it("falls back to String for cyclic objects", () => {
+    const cyclic: Record<string, unknown> = {};
+    cyclic.self = cyclic;
+    expect(serialize(cyclic)).toBe("[object Object]");
+  });
 });

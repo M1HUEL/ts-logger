@@ -1,4 +1,5 @@
-﻿import { appendFile, mkdir, readdir, rename, rm, stat } from "node:fs/promises";
+﻿import { existsSync } from "node:fs";
+import { appendFile, mkdir, readdir, rename, rm, stat } from "node:fs/promises";
 import { dirname, extname, basename, join } from "node:path";
 import type { LogEntry, Transport } from "./types";
 import { humanFormatter, jsonFormatter } from "./formatters";
@@ -126,17 +127,24 @@ export class FileTransporter implements Transport {
 
   private async rotate(now: Date): Promise<void> {
     try {
-      await rename(this.filePath, this.rotatedPath(now));
+      await rename(this.filePath, await this.rotatedPath(now));
     } catch {
       // current file does not exist yet; nothing to rotate
     }
     await this.prune();
   }
 
-  private rotatedPath(date: Date): string {
+  private async rotatedPath(date: Date): Promise<string> {
     const ext = extname(this.filePath);
     const base = ext.length > 0 ? this.filePath.slice(0, -ext.length) : this.filePath;
-    return `${base}.${formatStamp(date)}${ext}`;
+    const stamp = formatStamp(date);
+    let candidate = `${base}.${stamp}${ext}`;
+    let counter = 1;
+    while (existsSync(candidate)) {
+      candidate = `${base}.${stamp}.${counter}${ext}`;
+      counter += 1;
+    }
+    return candidate;
   }
 
   private async prune(): Promise<void> {
