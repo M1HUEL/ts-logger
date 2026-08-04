@@ -42,6 +42,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "docs": "typedoc",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -56,6 +57,7 @@
     "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^10.8.0",
     "tsup": "^8.5.1",
+    "typedoc": "^0.28.20",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.66.0",
     "vitest": "^4.1.10"

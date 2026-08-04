@@ -1,0 +1,11 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "name": "ts-logger",
+  "readme": "README.md",
+  "tsconfig": "tsconfig.json",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "includeVersion": true
+}

@@ -118,6 +118,8 @@ runtime via `logger.level`.
 
 ## API
 
+Full API reference: [ts-logger docs](https://m1huel.github.io/ts-logger/)
+
 ### `new Logger(options?)`
 
 | Option            | Type                    | Default               |
@@ -157,6 +159,7 @@ npm run typecheck  # TypeScript type checking
 npm run lint       # ESLint
 npm test           # Vitest (unit tests)
 npm run build      # tsup: ESM + CJS + d.ts
+npm run docs       # TypeDoc → docs/ (published to GitHub Pages)
 npm run test:coverage
 ```
 
